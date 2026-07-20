@@ -1,5 +1,13 @@
 package com.project.back_end.models;
 
+import javax.persistence.ElementCollection;
+import jakarta.validation.constraints.Size;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
+import java.util.List;
 // @Entity annotation:
 //    - Marks the class as a JPA entity, meaning it represents a table in the database.
 //    - Required for persistence frameworks (e.g., Hibernate) to map the class to a database table.

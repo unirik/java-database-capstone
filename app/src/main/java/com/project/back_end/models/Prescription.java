@@ -1,5 +1,9 @@
 package com.project.back_end.models;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.annotation.Id;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 // @Document annotation:
 //    - Marks the class as a MongoDB document (a collection in MongoDB).
 //    - The collection name is specified as "prescriptions" to map this class to the "prescriptions" collection in MongoDB.

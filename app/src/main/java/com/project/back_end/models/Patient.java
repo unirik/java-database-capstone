@@ -1,5 +1,13 @@
 package com.project.back_end.models;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 // @Entity annotation:
 //    - Marks the class as a JPA entity, meaning it represents a table in the database.
 //    - Required for persistence frameworks (e.g., Hibernate) to map the class to a database table.
@@ -11,6 +19,8 @@ public class Patient {
     //      - Represents the unique identifier for each patient.
     //      - The @Id annotation marks it as the primary key.
     //      - The @GeneratedValue(strategy = GenerationType.IDENTITY) annotation auto-generates the ID value when a new record is inserted into the database.
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     // 2. 'name' field:

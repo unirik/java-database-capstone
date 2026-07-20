@@ -1,5 +1,15 @@
 package com.project.back_end.models;
 
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.validation.constraints.Future;
+import jakarta.persistence.Transient;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
 // @Entity annotation:
 //    - Marks the class as a JPA entity, meaning it represents a table in the database.
 //    - Required for persistence frameworks (e.g., Hibernate) to map the class to a database table.
@@ -41,7 +51,7 @@ public class Appointment {
     //      - Represents the date and time when the appointment is scheduled to occur.
     //      - The @Future annotation ensures that the appointment time is always in the future when the appointment is created.
     //      - It uses LocalDateTime, which includes both the date and time for the appointment.
-    @Future
+    @Future(message = "Appointment time must be in the future")
     private LocalDateTime appointmentTime;
 
     // 5. 'status' field:
