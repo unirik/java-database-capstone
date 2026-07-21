@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Future;
 import jakarta.persistence.Transient;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.time.LocalTime;
 // @Entity annotation:
 //    - Marks the class as a JPA entity, meaning it represents a table in the database.
 //    - Required for persistence frameworks (e.g., Hibernate) to map the class to a database table.
@@ -81,7 +82,7 @@ public class Appointment {
     //      - This method extracts only the date part from the appointmentTime field.
     //      - It returns a LocalDate object representing just the date (without the time) of the scheduled appointment.
     public LocalDate getAppointmentTime() {
-        return appointmentTime;
+        return appointmentTime.toLocalDate();
     }
 
     // 8. 'getAppointmentTimeOnly' method:
@@ -90,7 +91,7 @@ public class Appointment {
     //      - This method extracts only the time part from the appointmentTime field.
     //      - It returns a LocalTime object representing just the time (without the date) of the scheduled appointment.
     public LocalTime getAppointmentTimeOnly() {
-        return appointmentTime;
+        return appointmentTime.toLocalTime();
     }
 
     // 9. Constructor(s):

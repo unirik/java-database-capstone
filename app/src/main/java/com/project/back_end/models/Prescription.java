@@ -24,7 +24,7 @@ public class Prescription {
     //      - Represents the name of the patient receiving the prescription.
     //      - The @NotNull annotation ensures that the patient name is required.
     //      - The @Size(min = 3, max = 100) annotation ensures that the name length is between 3 and 100 characters, ensuring a reasonable name length.
-    @NotNull("name of the patient cannot be null")
+    @NotNull
     @Size(min = 3, max = 100)
     private String patientName;
 
