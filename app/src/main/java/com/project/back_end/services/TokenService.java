@@ -5,6 +5,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.project.back_end.models.Admin;
+import com.project.back_end.models.Doctor;
+import com.project.back_end.models.Patient;
+import com.project.back_end.repo.DoctorRepository;
+import com.project.back_end.repo.PatientRepository;
+import com.project.back_end.repo.AdminRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
@@ -46,6 +52,75 @@ public class TokenService {
                 .signWith(getSigningKey())
                 .compact();
     }
+
+    public Long extractIdFromClaim(String token, String claimKey) {
+        try {
+            if (token != null && token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            }
+
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            // Busca dinámicamente la clave que le pidas ("userId", "patientId", "doctorId", etc.)
+            Object idClaim = claims.get(claimKey);
+            if (idClaim != null) {
+                return Long.valueOf(idClaim.toString());
+            }
+            return null;
+        } catch (Exception e) {
+            logger.warn("Fallo al intentar extraer el claim '{}' del token JWT: {}", claimKey, e.getMessage());
+            return null;
+        }
+    }
+
+//    public Long extractId(String token) {
+//        try {
+//            if (token != null && token.startsWith("Bearer ")) {
+//                token = token.substring(7);
+//            }
+//
+//            Claims claims = Jwts.parser()
+//                    .verifyWith(getSigningKey())
+//                    .build()
+//                    .parseSignedClaims(token)
+//                    .getPayload();
+//
+//            Object userIdClaim = claims.get("doctorId");
+//            if (userIdClaim != null) {
+//                return Long.valueOf(userIdClaim.toString());
+//            }
+//            return null;
+//        } catch (Exception e) {
+//            logger.warn("Fallo al intentar extraer el ID del token JWT provisto: {}", e.getMessage());
+//            return null;
+//        }
+//    }
+
+    /**
+     * public Long extractUserId(String token) {
+     *     try {
+     *         if (token != null && token.startsWith("Bearer ")) {
+     *             token = token.substring(7);
+     *         }
+     *
+     *         Claims claims = Jwts.parser()
+     *                 .verifyWith(getSigningKey())
+     *                 .build()
+     *                 .parseSignedClaims(token)
+     *                 .getPayload();
+     *
+     *         String subject = claims.getSubject();
+     *         return subject != null ? Long.valueOf(subject) : null;
+     *     } catch (Exception e) {
+     *         logger.warn("Fallo al intentar extraer el ID del subject del token: {}", e.getMessage());
+     *         return null;
+     *     }
+     * }
+     */
 
     public String extractEmail(String token) {
         try {

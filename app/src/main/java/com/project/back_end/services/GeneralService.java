@@ -5,6 +5,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import com.project.back_end.models.Doctor;
+import com.project.back_end.models.Admin;
+import com.project.back_end.models.Patient;
+import com.project.back_end.services.TokenService;
+import com.project.back_end.services.PatientService;
+import com.project.back_end.services.DoctorService;
+import com.project.back_end.repo.AdminRepository;
+import com.project.back_end.DTO.AppointmentDTO;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -14,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class Service {
+public class GeneralService {
     private static final Logger logger = LoggerFactory.getLogger(Service.class);
 
     private final TokenService tokenService;
@@ -22,7 +30,7 @@ public class Service {
     private final DoctorService doctorService;
     private final PatientService patientService;
 
-    public GeneralService(TokenService tokenService, 
+    public GeneralService(TokenService tokenService,
                           AdminRepository adminRepository, 
                           DoctorService doctorService, 
                           PatientService patientService) {

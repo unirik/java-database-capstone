@@ -1,5 +1,9 @@
 package com.project.back_end.DTO;
 
+import java.time.LocalTime;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 public class AppointmentDTO {
     private Long id;
     private Long doctorId;

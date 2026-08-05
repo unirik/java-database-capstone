@@ -1,7 +1,8 @@
 package com.project.back_end.controllers;
 
 import org.springframework.web.bind.annotation.*;
-import com.project.back_end.services.Service;
+import com.project.back_end.models.Prescription;
+import com.project.back_end.services.GeneralService;
 import com.project.back_end.services.PrescriptionService;
 import com.project.back_end.services.AppointmentService;
 import org.springframework.http.ResponseEntity;
@@ -14,9 +15,9 @@ import java.util.Map;
 public class PrescriptionController {
     private final PrescriptionService prescriptionService;
     private final AppointmentService appointmentService;
-    private final Service service;
+    private final GeneralService service;
 
-    public PrescriptionController(PrescriptionService prescriptionService, Service service, AppointmentService appointmentService) {
+    public PrescriptionController(PrescriptionService prescriptionService, GeneralService service, AppointmentService appointmentService) {
         this.prescriptionService = prescriptionService;
         this.appointmentService = appointmentService;
         this.service = service;
@@ -26,23 +27,15 @@ public class PrescriptionController {
     public ResponseEntity<Map<String, Object>> savePrescription(@RequestBody Prescription prescription, @PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!generalService.validateToken(token, "doctor")) {
+        if (!service.validateToken(token, "doctor").getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
-            response.put("message", "Invalid Token inválido.");
+            response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        boolean isStatusUpdated = appointmentService.updateStatusAfterPrescription(prescription.getAppointmentId());
+        ResponseEntity<Object> isSaved = prescriptionService.savePrescription(prescription);
 
-        if (!isStatusUpdated) {
-            response.put("success", false);
-            response.put("message", "Appointment cannot be updated.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
-
-        boolean isSaved = prescriptionService.savePrescription(prescription);
-
-        if (isSaved) {
+        if (isSaved != null) {
             response.put("success", true);
             response.put("message", "Prescription successfully created.");
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -57,13 +50,13 @@ public class PrescriptionController {
     public ResponseEntity<Map<String, Object>> getPrescription(@PathVariable Long appointmentId, @PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!generalService.validateToken(token, "doctor")) {
+        if (!service.validateToken(token, "doctor").getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
             response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        Prescription prescription = prescriptionService.getPrescription(appointmentId);
+        ResponseEntity<Object> prescription = prescriptionService.getPrescription(appointmentId);
 
         if (prescription != null) {
             response.put("success", true);

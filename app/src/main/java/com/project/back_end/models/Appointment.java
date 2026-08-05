@@ -81,8 +81,8 @@ public class Appointment {
     //    - Description:
     //      - This method extracts only the date part from the appointmentTime field.
     //      - It returns a LocalDate object representing just the date (without the time) of the scheduled appointment.
-    public LocalDate getAppointmentTime() {
-        return appointmentTime.toLocalDate();
+    public LocalDateTime getAppointmentTime() {
+        return appointmentTime;
     }
 
     // 8. 'getAppointmentTimeOnly' method:

@@ -4,13 +4,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import com.project.back_end.services.TokenService;
 
 @Controller
 public class DashboardController {
-    private final TokenValidationService tokenValidationService;
+    private final TokenService tokenValidationService;
 
     @Autowired
-    public DashboardController(TokenValidationService tokenValidationService) {
+    public DashboardController(TokenService tokenValidationService) {
         this.tokenValidationService = tokenValidationService;
     }
 

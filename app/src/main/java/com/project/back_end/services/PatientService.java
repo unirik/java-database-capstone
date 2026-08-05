@@ -2,6 +2,11 @@ package com.project.back_end.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.project.back_end.repo.PatientRepository;
+import com.project.back_end.repo.AppointmentRepository;
+import com.project.back_end.models.Patient;
+import com.project.back_end.models.Appointment;
+import com.project.back_end.DTO.AppointmentDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Collections;
@@ -96,7 +101,7 @@ public class PatientService {
     public Patient getPatientDetails(String token) {
         try {
             // Extraer email desde el Token (Asumiendo que soporta remover el prefijo 'Bearer ' si existiera)
-            String email = tokenService.getEmailFromToken(token);
+            String email = tokenService.extractEmail(token);
             if (email == null || email.isEmpty()) {
                 throw new IllegalArgumentException("El token provisto no contiene un correo electrónico válido.");
             }

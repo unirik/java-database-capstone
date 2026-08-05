@@ -2,6 +2,10 @@ package com.project.back_end.services;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.project.back_end.repo.DoctorRepository;
+import com.project.back_end.repo.AppointmentRepository;
+import com.project.back_end.models.Doctor;
+import com.project.back_end.models.Appointment;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -31,7 +35,7 @@ public class DoctorService {
         this.tokenService = tokenService;
     }
 
-    @TransactionalreadOnly = true)
+    @Transactional(readOnly = true)
     public List<LocalTime> getDoctorAvailability(Long doctorId, LocalDate date) {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(23, 59, 59);
@@ -42,13 +46,14 @@ public class DoctorService {
 
         // Extraer solo la hora de las citas ocupadas
         List<LocalTime> bookedTimes = bookedAppointments.stream()
-                .map(appointment -> appointment.getAppointmentTime().toLocalTime())
+                .map(appointment -> appointment.getAppointmentTimeOnly())
                 .collect(Collectors.toList());
 
         // Filtrar los bloques estándar quitando los que ya están ocupados
-        return STANDARD_SLOTS.stream()
+        /*return STANDARD_SLOTS.stream()
                 .filter(slot -> !bookedTimes.contains(slot))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList());*/
+        return bookedTimes;
     };
 
     @Transactional

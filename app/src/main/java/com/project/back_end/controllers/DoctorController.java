@@ -1,22 +1,26 @@
 package com.project.back_end.controllers;
 
 import org.springframework.web.bind.annotation.*;
+import com.project.back_end.models.Doctor;
 import com.project.back_end.services.DoctorService;
-import com.project.back_end.services.Service;
+import com.project.back_end.services.GeneralService;
 import com.project.back_end.DTO.Login;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalTime;
+import java.time.LocalDate;
+java.time.format.DateTimeParseException
 
 @RestController
 @RequestMapping("${api.path}doctor")
 public class DoctorController {
     private final DoctorService doctorService;
-    private final Service service;
+    private final GeneralService service;
 
-    public DoctorController(DoctorService doctorService, Service service) {
+    public DoctorController(DoctorService doctorService, GeneralService service) {
         this.doctorService = doctorService;
         this.service = service;
     }
@@ -25,22 +29,29 @@ public class DoctorController {
     public ResponseEntity<Map<String, Object>> getDoctorAvailability(@PathVariable String user, @PathVariable Long doctorId, @PathVariable String date, @PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!service.validateToken(token, user)) {
+        if (!service.validateToken(token, user).getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
-            response.put("message", "Invalid Token or expired for user: " + user);
+            response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        var availability = doctorService.getDoctorAvailability(doctorId, date);
-        response.put("success", true);
-        response.put("availability", availability);
-        return ResponseEntity.ok(response);
+        try {
+            LocalDate localDate = LocalDate.parse(date);
+        } catch (DateTimeParseException e) {
+            response.put("success", false);
+            response.put("message", "Invalid date format. Please use YYYY-MM-DD.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+            List<LocalTime> availability = doctorService.getDoctorAvailability(doctorId, localDate);
+            response.put("success", true);
+            response.put("availability", availability);
+            return ResponseEntity.ok(response);
     }
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getDoctor() {
         Map<String, Object> response = new HashMap<>();
-        List<Doctor> doctors = doctorService.getAllDoctors();
+        List<Doctor> doctors = doctorService.getDoctors();
         
         response.put("doctors", doctors);
         return ResponseEntity.ok(response);
@@ -50,13 +61,15 @@ public class DoctorController {
     public ResponseEntity<Map<String, Object>> saveDoctor(@RequestBody Doctor doctor, @PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!generalService.validateToken(token, "admin")) {
+        if (!service.validateToken(token, "admin").getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
             response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        if (doctorService.exists(doctor)) {
+        List<Doctor> doctors = doctorService.findDoctorByName(doctor.getName());
+
+        if (doctors.size() > 0) {
             response.put("success", false);
             response.put("message", "The doctor is already logged.");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
@@ -73,16 +86,15 @@ public class DoctorController {
         Map<String, Object> response = new HashMap<>();
         
         // Delegar autenticación al servicio de doctores
-        Map<String, Object> loginResult = doctorService.login(login);
+        String loginResult = doctorService.validateDoctor(login.getEmail(), login.getPassword());
 
-        if ((boolean) loginResult.get("authenticated")) {
+        if (Boolean.parseBoolean(loginResult)) {
             response.put("success", true);
-            response.put("token", loginResult.get("token"));
             response.put("message", "Login exitoso.");
             return ResponseEntity.ok(response);
         } else {
             response.put("success", false);
-            response.put("message", "Credenciales incorrectas.");
+            response.put("message", "Invalid Credentials.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
@@ -91,15 +103,15 @@ public class DoctorController {
     public ResponseEntity<Map<String, Object>> updateDoctor(@RequestBody Doctor doctor, @PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!generalService.validateToken(token, "admin")) {
+        if (!service.validateToken(token, "admin").getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
-            response.put("message", "Not authorized to perform that action.");
+            response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        boolean isUpdated = doctorService.updateDoctor(doctor);
+        int isUpdated = doctorService.updateDoctor(doctor);
 
-        if (isUpdated) {
+        if (isUpdated == 1) {
             response.put("success", true);
             response.put("message", "Doctor information updated successfully.");
             return ResponseEntity.ok(response);
@@ -114,15 +126,15 @@ public class DoctorController {
     public ResponseEntity<Map<String, Object>> deleteDoctor(@PathVariable Long id, @PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!generalService.validateToken(token, "admin")) {
+        if (!service.validateToken(token, "admin").getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
-            response.put("message", "Not authorized for deleting logs.");
+            response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        boolean isDeleted = doctorService.deleteDoctorById(id);
+        int isDeleted = doctorService.deleteDoctor(id);
 
-        if (isDeleted) {
+        if (isDeleted == 1) {
             response.put("success", true);
             response.put("message", "Doctor deleted successfully.");
             return ResponseEntity.ok(response);
@@ -137,7 +149,7 @@ public class DoctorController {
     public ResponseEntity<Map<String, Object>> filter(@PathVariable String name, @PathVariable String time, @PathVariable String speciality) {
         Map<String, Object> response = new HashMap<>();
 
-        List<Doctor> filteredDoctors = generalService.filterDoctors(name, time, speciality);
+        List<Doctor> filteredDoctors = service.filterDoctor(name, speciality, time);
 
         response.put("success", true);
         response.put("doctors", filteredDoctors);

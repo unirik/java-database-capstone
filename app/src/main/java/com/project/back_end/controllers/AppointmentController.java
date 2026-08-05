@@ -1,10 +1,15 @@
 package com.project.back_end.controllers;
 
 import org.springframework.web.bind.annotation.*;
+import com.project.back_end.models.Appointment;
 import com.project.back_end.services.AppointmentService;
-import com.project.back_end.services.Service;
+import com.project.back_end.services.TokenService;
+import com.project.back_end.services.GeneralService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,46 +17,63 @@ import java.util.Map;
 @RequestMapping("/appointments")
 public class AppointmentController {
     private final AppointmentService appointmentService;
-    private final Service service;
+    private final GeneralService service;
+    private final TokenService tokenService;
 
-    public AppointmentController(AppointmentService appointmentService, Service generalService) {
+    public AppointmentController(AppointmentService appointmentService, GeneralService service, TokenService tokenService) {
         this.appointmentService = appointmentService;
-        this.generalService = generalService;
+        this.service = service;
+        this.tokenService = tokenService;
     }
 
     @GetMapping("/{date}/{patientName}/{token}")
     public ResponseEntity<Map<String, Object>> getAppointments(@PathVariable String date, @PathVariable String patientName, @PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!generalService.validateToken(token, "doctor")) {
+        if (!service.validateToken(token, "doctor").getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
-            response.put("message", "Token inválido o expirado. Acceso denegado.");
+            response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        var appointments = appointmentService.getAppointmentsByDateAndPatient(date, patientName);
-        response.put("success", true);
-        response.put("data", appointments);
-        return ResponseEntity.ok(response);
+        try {
+            LocalDate localDate = LocalDate.parse(date);
+
+            Long doctorId = tokenService.extractIdFromClaim(token, "doctorId");
+            if (doctorId == null) {
+                response.put("success", false);
+                response.put("message", "Token inválido o ID de usuario no encontrado.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            var appointments = appointmentService.getAppointments(doctorId, localDate, patientName);
+            response.put("success", true);
+            response.put("data", appointments);
+            return ResponseEntity.ok(response);
+        } catch (DateTimeParseException e) {
+            response.put("success", false);
+            response.put("message", "Formato de fecha inválido. Use YYYY-MM-DD.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
     
     @PostMapping("/{token}")
     public ResponseEntity<Map<String, Object>> bookAppointment(@RequestBody Appointment appointment, @PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!generalService.validateToken(token, "patient")) {
+        if (!service.validateToken(token, "patient").getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
-            response.put("message", "Invalid Token.");
+            response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        String bookingResult = appointmentService.bookAppointment(appointment);
+        int bookingResult = appointmentService.bookAppointment(appointment);
 
-        if ("SUCCESS".equals(bookingResult)) {
+        if (bookingResult == 1) {
             response.put("success", true);
             response.put("message", "Appointment reserved successfully");
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } else if ("INVALID_DOCTOR".equals(bookingResult)) {
+        } else if (bookingResult == 0) {
             response.put("success", false);
             response.put("message", "Invalid Doctor ID.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -66,21 +88,43 @@ public class AppointmentController {
     public ResponseEntity<Map<String, Object>> updateAppointment(@RequestBody Appointment appointment, @PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!generalService.validateToken(token, "patient")) {
+        if (!service.validateToken(token, "patient").getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
-            response.put("message", "Not authorized for modifying this appointment.");
+            response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        boolean isUpdated = appointmentService.updateAppointment(appointment);
+        try {
+            LocalDateTime date = appointment.getAppointmentTime();
 
-        if (isUpdated) {
-            response.put("success", true);
-            response.put("message", "Appointment updated successfully.");
-            return ResponseEntity.ok(response);
-        } else {
+            Long patientId = tokenService.extractIdFromClaim(token, "patientId");
+            if (patientId == null) {
+                response.put("success", false);
+                response.put("message", "Invalid ID.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            Long appointmentId = tokenService.extractIdFromClaim(token, "appointmentId");
+            if (appointmentId == null) {
+                response.put("success", false);
+                response.put("message", "Invalid ID.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            String isUpdated = appointmentService.updateAppointment(appointmentId, patientId, date);
+
+            if (Boolean.parseBoolean(isUpdated)) {
+                response.put("success", true);
+                response.put("message", "Appointment updated successfully.");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "The appointment could not be updated.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+        } catch (Exception e) {
             response.put("success", false);
-            response.put("message", "The appointment could not be updated.");
+            response.put("message", "Unexpected Error.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
@@ -89,22 +133,35 @@ public class AppointmentController {
     public ResponseEntity<Map<String, Object>> cancelAppointment(@PathVariable Long id, @PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!generalService.validateToken(token, "patient")) {
+        if (!service.validateToken(token, "patient").getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
-            response.put("message", "Not authorized for avoid this appointment.");
+            response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        boolean isCanceled = appointmentService.cancelAppointment(id);
+        try {
+            Long patientId = tokenService.extractIdFromClaim(token, "patientId");
+            if (patientId == null) {
+                response.put("success", false);
+                response.put("message", "Invalid ID.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
 
-        if (isCanceled) {
-            response.put("success", true);
-            response.put("message", "Appointment canceled succesfully.");
-            return ResponseEntity.ok(response);
-        } else {
+            String isCanceled = appointmentService.cancelAppointment(id, patientId);
+
+            if (Boolean.parseBoolean(isCanceled)) {
+                response.put("success", true);
+                response.put("message", "Appointment canceled succesfully.");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "The appointment not exists.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (java.lang.Exception e) {
             response.put("success", false);
-            response.put("message", "The appointment not exists.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            response.put("message", "Unexpected Error.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 }

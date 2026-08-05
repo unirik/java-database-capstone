@@ -1,6 +1,11 @@
 package com.project.back_end.services;
 
 import org.springframework.stereotype.Service;
+import com.project.back_end.models.Appointment;
+import com.project.back_end.repo.AppointmentRepository;
+import com.project.back_end.repo.PatientRepository;
+import com.project.back_end.repo.DoctorRepository;
+import com.project.back_end.services.GeneralService;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,18 +16,18 @@ import java.util.Optional;
 @Service
 public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
-    private final com.example.service.Service genericService;
+    private final Service service;
     private final TokenService tokenService;
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
-                              com.example.service.Service genericService,
+                              Service service,
                               TokenService tokenService,
                               PatientRepository patientRepository,
                               DoctorRepository doctorRepository) {
         this.appointmentRepository = appointmentRepository;
-        this.genericService = genericService;
+        this.service = service;
         this.tokenService = tokenService;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;

@@ -1,21 +1,24 @@
 package com.project.back_end.controllers;
 
 import org.springframework.web.bind.annotation.*;
-import com.project.back_end.services.Service;
+import com.project.back_end.models.Patient;
+import com.project.back_end.services.GeneralService;
 import com.project.back_end.services.PatientService;
 import com.project.back_end.DTO.Login;
+import com.project.back_end.DTO.AppointmentDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/patient")
 public class PatientController {
     private final PatientService patientService;
-    private final Service service;
+    private final GeneralService service;
 
-    public PatientController(PatientService patientService, Service service) {
+    public PatientController(PatientService patientService, GeneralService service) {
         this.patientService = patientService;
         this.service = service;
     }
@@ -24,13 +27,13 @@ public class PatientController {
     public ResponseEntity<Map<String, Object>> getPatient(@PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!generalService.validateToken(token, "patient")) {
+        if (!service.validateToken(token, "patient").getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
-            response.put("message", "Invalid Token or expired. Denied Access.");
+            response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        var patientInfo = patientService.getPatientDetailsByToken(token);
+        Patient patientInfo = patientService.getPatientDetails(token);
         response.put("success", true);
         response.put("patient", patientInfo);
         return ResponseEntity.ok(response);
@@ -40,15 +43,15 @@ public class PatientController {
     public ResponseEntity<Map<String, Object>> createPatient(@RequestBody Patient patient) {
         Map<String, Object> response = new HashMap<>();
 
-        if (generalService.checkPatientExists(patient)) {
+        if (service.validatePatient(patient.getEmail(), patient.getPhone())) {
             response.put("success", false);
             response.put("message", "The patient is already registered.");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         }
 
-        boolean isCreated = patientService.createPatient(patient);
+        int isCreated = patientService.createPatient(patient);
 
-        if (isCreated) {
+        if (isCreated == 1) {
             response.put("success", true);
             response.put("message", "Patient successfully registered.");
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -63,11 +66,10 @@ public class PatientController {
     public ResponseEntity<Map<String, Object>> login(@RequestBody Login login) {
         Map<String, Object> response = new HashMap<>();
 
-        Map<String, Object> loginResult = service.validatePatientLogin(login);
+        boolean loginResult = service.validatePatient(login.getEmail(), login.getPassword());
 
-        if ((boolean) loginResult.get("success")) {
+        if (loginResult) {
             response.put("success", true);
-            response.put("token", loginResult.get("token"));
             response.put("message", "Login success.");
             return ResponseEntity.ok(response);
         } else {
@@ -81,13 +83,13 @@ public class PatientController {
     public ResponseEntity<Map<String, Object>> getPatientAppointment(@PathVariable Long patientId, @PathVariable String token, @PathVariable String userRole) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!generalService.validateToken(token, userRole)) {
+        if (!service.validateToken(token, userRole).getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
-            response.put("message", "Validation Error: token or rol not authorized.");
+            response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        var appointments = patientService.getAppointmentsByPatientId(patientId);
+        List<AppointmentDTO> appointments = patientService.getPatientAppointment(patientId);
         response.put("success", true);
         response.put("appointments", appointments);
         return ResponseEntity.ok(response);
@@ -97,13 +99,13 @@ public class PatientController {
     public ResponseEntity<Map<String, Object>> filterPatientAppointment(@PathVariable String condition, @PathVariable String name, @PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
 
-        if (!generalService.validateToken(token, "patient")) {
+        if (!service.validateToken(token, "patient").getStatusCode().is2xxSuccessful()) {
             response.put("success", false);
-            response.put("message", "Invalid Token inválido.");
+            response.put("message", "Denied Access.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        var filteredAppointments = generalService.filterPatientAppointments(condition, name);
+        List<AppointmentDTO> filteredAppointments = service.filterPatient(token, condition, name);
         response.put("success", true);
         response.put("appointments", filteredAppointments);
         return ResponseEntity.ok(response);
