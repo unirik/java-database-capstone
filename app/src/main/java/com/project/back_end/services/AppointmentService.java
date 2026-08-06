@@ -16,13 +16,13 @@ import java.util.Optional;
 @Service
 public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
-    private final Service service;
+    private final GeneralService service;
     private final TokenService tokenService;
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
-                              Service service,
+                              GeneralService service,
                               TokenService tokenService,
                               PatientRepository patientRepository,
                               DoctorRepository doctorRepository) {

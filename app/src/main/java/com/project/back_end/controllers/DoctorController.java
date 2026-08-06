@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.time.LocalTime;
 import java.time.LocalDate;
-java.time.format.DateTimeParseException
+import java.time.format.DateTimeParseException;
 
 @RestController
 @RequestMapping("${api.path}doctor")
@@ -37,15 +37,15 @@ public class DoctorController {
 
         try {
             LocalDate localDate = LocalDate.parse(date);
+            List<LocalTime> availability = doctorService.getDoctorAvailability(doctorId, localDate);
+            response.put("success", true);
+            response.put("availability", availability);
+            return ResponseEntity.ok(response);
         } catch (DateTimeParseException e) {
             response.put("success", false);
             response.put("message", "Invalid date format. Please use YYYY-MM-DD.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-            List<LocalTime> availability = doctorService.getDoctorAvailability(doctorId, localDate);
-            response.put("success", true);
-            response.put("availability", availability);
-            return ResponseEntity.ok(response);
     }
 
     @GetMapping
