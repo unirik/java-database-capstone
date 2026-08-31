@@ -83,7 +83,7 @@ public class GeneralService {
         } else if (!name.equals("null") && !specialty.equals("null")) {
             response = doctorService.filterDoctorByNameAndSpecility(name, specialty);
         } else if (!specialty.equals("null") && !timePeriod.equals("null")) {
-            response = doctorService.filterDoctorByTimeAndSpecialty(specialty, timePeriod);
+            response = doctorService.filterDoctorByTimeAndSpecility(timePeriod, specialty);
         } else if (!name.equals("null")) {
             response = doctorService.findDoctorByName(name);
         } else if (!specialty.equals("null")) {
@@ -144,11 +144,11 @@ public class GeneralService {
         String recoveredEmail = tokenService.extractEmail(token);
         Long patientId = patientRepository.findByEmail(recoveredEmail).getId();
         if (doctorName.equals("null") && !condition.equals("null")) {
-            return patientService.filterByCondition(condition, patientId);
+            return patientService.filterByCondition(patientId, condition);
         } else if (condition.equals("null") && !doctorName.equals("null")) {
-            return patientService.filterByDoctor(doctorName, patientId);
+            return patientService.filterByDoctor(patientId, doctorName);
         } else if (!condition.equals("null") && !doctorName.equals("null")) {
-            return patientService.filterByDoctorAndCondition(condition, doctorName, patientId);
+            return patientService.filterByDoctorAndCondition(patientId, doctorName, condition);
         } else {
             return patientService.getPatientAppointment(patientId, token);
         }

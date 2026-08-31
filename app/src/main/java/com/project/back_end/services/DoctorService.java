@@ -36,7 +36,7 @@ public class DoctorService {
     }
 
     @Transactional
-    public List<String> getDoctorAvailability(Long doctorId, LocalDate date) {
+    public List<String> getDoctorAvailability(Long doctorId, LocalDateTime date) {
         Optional<Doctor> doctor = doctorRepository.findById(doctorId);
         List<String> availableSlots = doctor.get().getAvailableTimes().stream().map(Object::toString).collect(Collectors.toList());
 
@@ -153,9 +153,9 @@ public class DoctorService {
             if (availableTimes == null || availableTimes.isEmpty()) return false;
 
             if ("AM".equalsIgnoreCase(timePeriod)) {
-                return availableTimes.stream().anyMatch(time -> time.isBefore(LocalTime.of(12, 0)));
+                return availableTimes.stream().anyMatch(time -> LocalTime.parse(time).isBefore(LocalTime.of(12, 0)));
             } else if ("PM".equalsIgnoreCase(timePeriod)) {
-                return availableTimes.stream().anyMatch(time -> !time.isBefore(LocalTime.of(12, 0)));
+                return availableTimes.stream().anyMatch(time -> !LocalTime.parse(time).isBefore(LocalTime.of(12, 0)));
             }
             return false;
         }).collect(Collectors.toList());
