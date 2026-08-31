@@ -30,7 +30,7 @@ public class PatientController {
         ResponseEntity<Map<String,String>> temp = service.validateToken(token, "patient");
         if (!temp.getBody().isEmpty()) {
             response.putAll(temp.getBody());
-            return new ResponseEntity<>(map, temp.getStatusCode());
+            return new ResponseEntity<>(response, temp.getStatusCode());
         }
         return patientService.getPatientDetails(token);
     }
@@ -61,7 +61,7 @@ public class PatientController {
     @GetMapping("/appointments/{patientId}/{userRole}/{token}")
     public ResponseEntity<Map<String, Object>> getPatientAppointment(@PathVariable Long patientId, @PathVariable String token, @PathVariable String userRole) {
         Map<String, Object> response = new HashMap<>();
-        ResponseEntity<Map<String,String>> temp = service.validateToken(token, user);
+        ResponseEntity<Map<String,String>> temp = service.validateToken(token, userRole);
         if (!temp.getBody().isEmpty()) {
             response.putAll(temp.getBody());
             return new ResponseEntity<>(response, temp.getStatusCode());
@@ -75,7 +75,7 @@ public class PatientController {
         ResponseEntity<Map<String,String>> temp = service.validateToken(token, "patient");
         if (!temp.getBody().isEmpty()) {
             response.putAll(temp.getBody());
-            return new ResponseEntity<>(map, temp.getStatusCode());
+            return new ResponseEntity<>(response, temp.getStatusCode());
         }
         return service.filterPatient(token, condition, name);
     }

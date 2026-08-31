@@ -30,10 +30,10 @@ public class DoctorController {
     @GetMapping("/availability/{user}/{doctorId}/{date}/{token}")
     public ResponseEntity<Map<String, Object>> getDoctorAvailability(@PathVariable String user, @PathVariable Long doctorId, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @PathVariable String token) {
         Map<String, Object> response = new HashMap<>();
-        responseEntity<Map<String,String>> temp = service.validateToken(token, user);
+        ResponseEntity<Map<String,String>> temp = service.validateToken(token, user);
         if (!temp.getBody().isEmpty()) {
             response.putAll(temp.getBody());
-            return new ResponseEntity<>(map, temp.getStatusCode());
+            return new ResponseEntity<>(response, temp.getStatusCode());
         }
         response.put("message", doctorService.getDoctorAvailability(doctorId, date));
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -66,7 +66,7 @@ public class DoctorController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> doctorLogin(@RequestBody @Valid Login login) {
+    public ResponseEntity<Map<String, String>> doctorLogin(@RequestBody @Valid Login login) {
         return doctorService.validateDoctor(login);
     }
 

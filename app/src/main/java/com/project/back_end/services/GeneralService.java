@@ -14,7 +14,7 @@ import com.project.back_end.services.TokenService;
 import com.project.back_end.repo.AdminRepository;
 import com.project.back_end.repo.PatientRepository;
 import com.project.back_end.repo.DoctorRepository;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
 import java.util.HashMap;
@@ -60,7 +60,7 @@ public class GeneralService {
             if (admin != null) {
                 if (admin.getPassword().equals(administrator.getPassword())) {
                     response.put("token", tokenService.generateToken(admin.getUsername()));
-                    return ResposeEntity.status(HttpStatus.OK).body(response);
+                    return ResponseEntity.status(HttpStatus.OK).body(response);
                 } else {
                     response.put("error", "Wrong password");
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
@@ -77,19 +77,19 @@ public class GeneralService {
     public Map<String, Object> filterDoctor(String name, String specialty, String timePeriod) {
         Map <String, Object> response = new HashMap<>();
         if (!name.equals("") && !specialty.equals("") && !timePeriod.equals("")) {
-            response = doctorService.filterDoctorsByNameSpecialtyAndTime(name, specialty, timePeriod);
-        } else if (!name.equals("null") && !time.equals("null")) {
+            response = doctorService.filterDoctorsByNameSpecilityandTime(name, specialty, timePeriod);
+        } else if (!name.equals("null") && !timePeriod.equals("null")) {
             response = doctorService.filterDoctorByNameAndTime(name, timePeriod);
         } else if (!name.equals("null") && !specialty.equals("null")) {
-            response = doctorService.filterDoctorByNameAndSpecialty(name, specialty);
+            response = doctorService.filterDoctorByNameAndSpecility(name, specialty);
         } else if (!specialty.equals("null") && !timePeriod.equals("null")) {
-            response = doctorService.filterDoctorByTimeAndSpecialty(specialty, time);
+            response = doctorService.filterDoctorByTimeAndSpecialty(specialty, timePeriod);
         } else if (!name.equals("null")) {
             response = doctorService.findDoctorByName(name);
         } else if (!specialty.equals("null")) {
-            response = doctorService.filterDoctorBySpecialty(specialty);
+            response = doctorService.filterDoctorBySpecility(specialty);
         } else if (!timePeriod.equals("null")) {
-            response = doctorService.filterDoctorByTime(timePeriod);
+            response = doctorService.filterDoctorsByTime(timePeriod);
         } else {
             response.put("doctors", doctorService.getDoctors());
         }
@@ -100,7 +100,7 @@ public class GeneralService {
         Doctor doctor = appointment.getDoctor();
         Optional<Doctor> result = doctorRepository.findById(doctor.getId());
         if (result.isEmpty()) return -1;
-        LocalDate appointmentDate = appointment.getAppointmentDate();
+        LocalDateTime appointmentDate = appointment.getAppointmentTime();
         LocalTime appointmentTime = appointment.getAppointmentTimeOnly();
         List<String> availableTime = doctorService.getDoctorAvailability(doctor.getId(), appointmentDate);
         for (String timeSlot : availableTime) {
@@ -143,12 +143,12 @@ public class GeneralService {
     public ResponseEntity<Map<String, Object>> filterPatient(String token, String condition, String doctorName) {
         String recoveredEmail = tokenService.extractEmail(token);
         Long patientId = patientRepository.findByEmail(recoveredEmail).getId();
-        if (name.equals("null") && !condition.equals("null")) {
+        if (doctorName.equals("null") && !condition.equals("null")) {
             return patientService.filterByCondition(condition, patientId);
-        } else if (condition.equals("null") && !name.equals("null")) {
-            return patientService.filterByDoctor(name, patientId);
-        } else if (!condition.equals("null") && !name.equals("null")) {
-            return patientService.filterByDoctorAndCondition(condition, name, patientId);
+        } else if (condition.equals("null") && !doctorName.equals("null")) {
+            return patientService.filterByDoctor(doctorName, patientId);
+        } else if (!condition.equals("null") && !doctorName.equals("null")) {
+            return patientService.filterByDoctorAndCondition(condition, doctorName, patientId);
         } else {
             return patientService.getPatientAppointment(patientId, token);
         }

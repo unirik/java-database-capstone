@@ -38,7 +38,7 @@ public class PatientService {
     }
 
     @Transactional
-    public ResponseEntity<Map<String, String>> getPatientAppointment(Long patientId, String token) {
+    public ResponseEntity<Map<String, Object>> getPatientAppointment(Long patientId, String token) {
         Map<String, Object> response = new HashMap<>();
         try {
             List<Appointment> appointments = appointmentRepository.findByPatientId(patientId);
@@ -66,9 +66,9 @@ public class PatientService {
         Map<String, Object> response = new HashMap<>();
         List<Appointment> appointments;
         if (condition.equals("past")) {
-            appointments = appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(id, 1);
+            appointments = appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(patientId, 1);
         } else if (condition.equals("future")) {
-            appointments = appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(id, 0);
+            appointments = appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(patientId, 0);
         } else {
             response.put("error", "Invalid filter");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);

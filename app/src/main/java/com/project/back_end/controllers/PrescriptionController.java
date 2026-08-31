@@ -27,10 +27,10 @@ public class PrescriptionController {
     }
 
     @PostMapping("/{token}")
-    public ResponseEntity<Map<String, Object>> savePrescription(@RequestBody Prescription prescription, @PathVariable String token) {
+    public ResponseEntity<Map<String, String>> savePrescription(@RequestBody Prescription prescription, @PathVariable String token) {
         ResponseEntity<Map<String, String>> temp = service.validateToken(token, "doctor");
         if (!temp.getBody().isEmpty()) return temp;
-        appointmentService.changeStatus(prescription.getAppointmentId());
+        appointmentService.changeStatus(1, prescription.getAppointmentId());
         return prescriptionService.savePrescription(prescription);
     }
 

@@ -30,11 +30,11 @@ public class AppointmentController {
         Map<String,Object> response = new HashMap<>();
         ResponseEntity<Map<String,String>> temp = service.validateToken(token, "doctor");
         if (!temp.getBody().isEmpty()) {
-            map.putAll(temp.getBody());
-            return new ResponseEntity<>(map, temp.getStatusCode());
+            response.putAll(temp.getBody());
+            return new ResponseEntity<>(response, temp.getStatusCode());
         }
-        map = appointmentService.getAppointment(patientName, date, token);
-        return ResponseEntity.status(HttpStatus.OK).body(map);
+        response = appointmentService.getAppointments(patientName, date, token);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
     
     @PostMapping("/{token}")

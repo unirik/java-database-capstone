@@ -55,7 +55,7 @@ public class AppointmentService {
             response.put("message", "Appointment not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
-        if (result.get().getPatient().getId != appointment.getPatient().getId()) {
+        if (result.get().getPatient().getId() != appointment.getPatient().getId()) {
             response.put("message", "Patient not found");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
@@ -77,7 +77,7 @@ public class AppointmentService {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
-    public ResponseEntity<Map<String, String>> cancelAppointment(Long appointmentId, Long patientId) {
+    public ResponseEntity<Map<String, String>> cancelAppointment(Long appointmentId, String token) {
         Map<String, String> response = new HashMap<>();
         Optional<Appointment> appointmentOpt = appointmentRepository.findById(appointmentId);
         String recoveredToken = tokenService.extractEmail(token);
@@ -101,7 +101,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    public Map<String, Object> getAppointments(Long doctorId, LocalDate day, String patientName) {
+    public Map<String, Object> getAppointments(String patientName, LocalDate day, String token) {
         Map<String, Object> response = new HashMap<>();
         String recoveredEmail = tokenService.extractEmail(token);
         Long doctorId = doctorRepository.findByEmail(recoveredEmail).getId();

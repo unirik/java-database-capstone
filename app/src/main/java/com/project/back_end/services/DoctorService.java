@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 @Service
 public class DoctorService {
@@ -91,7 +92,7 @@ public class DoctorService {
     }
 
     public int deleteDoctor(Long doctorId) {
-        Optional<Doctor> existingDoctor = doctorRepository.findById(id);
+        Optional<Doctor> existingDoctor = doctorRepository.findById(doctorId);
         if (!existingDoctor.isPresent()) return -1;
         try {
             if (!doctorRepository.existsById(doctorId)) {
@@ -148,7 +149,7 @@ public class DoctorService {
         if (doctors == null || timePeriod == null) return Collections.emptyList();
 
         return doctors.stream().filter(doctor -> {
-            List<LocalTime> availableTimes = doctor.getAvailableTimes();
+            List<String> availableTimes = doctor.getAvailableTimes();
             if (availableTimes == null || availableTimes.isEmpty()) return false;
 
             if ("AM".equalsIgnoreCase(timePeriod)) {
