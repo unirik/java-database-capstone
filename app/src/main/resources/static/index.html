@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Clinic Management System</title>
-    <link rel="icon" type="image/png" href="./assets/images/logo/Logo.png">
+    <link rel="icon" type="image/png" href="./assets/images/logo/logo.png">
     <link rel="stylesheet" href="./assets/css/index.css">
     <link rel="stylesheet" href="./assets/css/style.css">
     <script src="./js/util.js" defer></script>
@@ -23,16 +23,18 @@
                     <button id="btn-admin" onclick=selectRole('Admin')>Admin</button>
                     <button id="btn-doctor" onclick=selectRole('Doctor')>Doctor</button>
                     <button id="btn-patient" onclick=selectRole('Patient')>Patient</button>
-                    <div id="modal" class="modal">
-                        <button id="closeModal">&times;</button>
-                        <div id="modal-body">
-                    </div>
                 </main>
                 <div id="footer"></div>
             </div>
         </div>
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span id="closeModal" class="close">&times;</span>
+                <div id="modal-body"></div>
+            </div>
+        </div>
     </main>
-    <script type="module" src="../js/services/index.js" defer></script>
+    <script type="module" src="../static/js/services/index.js" defer></script>
 </body>
 </html>
 

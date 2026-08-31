@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import java.util.List;
-import java.time.LocalTime;
 
 @Entity
 public class Doctor {
@@ -28,10 +27,10 @@ public class Doctor {
     private String specialty;
 
     @NotNull(message = "email cannot be null")
-    @Email
+    @Email(message = "Invalid email format")
     private String email;
 
-    @NotNull
+    @NotNull(message = "password cannot be null")
     @Size(min = 6)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
@@ -41,7 +40,7 @@ public class Doctor {
     private String phone;
 
     @ElementCollection
-    private List<LocalTime> availableTimes;
+    private List<String> availableTimes;
 
     public Long getId() {
         return id;
@@ -91,11 +90,11 @@ public class Doctor {
         this.phone = phone;
     }
 
-    public List<LocalTime> getAvailableTimes() {
+    public List<String> getAvailableTimes() {
         return availableTimes;
     }
 
-    public void setAvailableTimes(List<LocalTime> availableTimes) {
+    public void setAvailableTimes(List<String> availableTimes) {
         this.availableTimes = availableTimes;
     }
 }

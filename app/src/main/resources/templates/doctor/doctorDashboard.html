@@ -21,10 +21,12 @@
             <div id="header"></div>
             <div class="main-content">
                 <input type="text" id="searchBar" class="searchBar" placeholder="Search Bar for custom output" />
-                <button id="todayButton" class="today-btn">Today's Appointments</button>
-                <input type="date" id="datePicker" class="date-picker"/>
-                <table>
-                    <thead>
+                <div class="filter-wrapper">
+                    <button id="todayButton" class="today-btn">Today's Appointments</button>
+                    <input type="date" id="datePicker" class="date-picker"/>
+                </div>
+                <table id="patient-table">
+                    <thead class="table-header">
                         <tr>
                             <th>Patient ID</th>
                             <th>Name</th>
@@ -33,7 +35,7 @@
                             <th>Prescription</th>
                         </tr>
                     </thead>
-                    <tbody id="patientTableBody"></tbody>
+                    <tbody id="patient-table-body"></tbody>
                 </table>
             </div>
             <div id="footer"></div>

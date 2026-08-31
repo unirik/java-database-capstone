@@ -2,12 +2,15 @@ function renderHeader() {
     const headerDiv = document.getElementById("header");
     if (window.location.pathname.endsWith("/")) {
         localStorage.removeItem("userRole");
+        localStorage.removeItem("token");
         headerDiv.innerHTML = `
           <header class="header">
-            <div class="logo-section">
-              <img src="../assets/images/logo/logo.png" alt="Hospital CRM Logo" class="logo-img">
-              <span class="logo-title">Hospital CMS</span>
-            </div>
+            <a href="/" class="logo-link" style="text-decoration: none">
+                <div class="logo-section">
+                    <img src="../assets/images/logo/logo.png" alt="Hospital CRM Logo" class="logo-img">
+                    <span class="logo-title">Hospital CMS</span>
+                </div>
+            </a>
           </header>`;
         return;
     }
@@ -49,38 +52,32 @@ function renderHeader() {
 }
 
 function attachHeaderButtonListeners() {
-  const loginBtn = document.getElementById("patientLogin");
-  const signupBtn = document.getElementById("patientSignup");
-
-  // Enlaza eventos de manera segura si los botones existen en el DOM
-  if (loginBtn) {
-    loginBtn.addEventListener("click", () => {
-      // Lógica o modal para el Login del paciente
-      console.log("Patient Login clicked");
+  const doctorBtn = document.getElementById('btn-doctor');
+  if (doctorBtn) {
+    doctorBtn.addEventListener("click", () -> {
+        localStorage.removeItem("token");
+        openModal("doctorLogin")
     });
   }
-
-  if (signupBtn) {
-    signupBtn.addEventListener("click", () => {
-      // Lógica o modal para el Registro del paciente
-      console.log("Patient Sign Up clicked");
+  const adminBtn = document.getElementById('btn-admin');
+  if (adminBtn) {
+    adminBtn.addEventListener("click", () -> {
+        localStorage.removeItem("token");
+        openModal("adminLogin")
     });
   }
 }
 
-function logout(event) {
-  if (event) event.preventDefault(); // Previene el comportamiento nativo del enlace <a>
+function logout() {
   localStorage.removeItem("userRole");
   localStorage.removeItem("token");
   window.location.href = "/";
 }
 
-function logoutPatient(event) {
-  if (event) event.preventDefault(); // Previene el comportamiento nativo del enlace <a>
+function logoutPatient() {
   localStorage.removeItem("token");
-  // Opcional: Si necesitas limpiar el rol al salir, descomenta la siguiente línea:
-  // localStorage.removeItem("userRole"); 
-  window.location.href = "/pages/loggedPatientDashboard.html";
+  localStorage.removeItem("userRole", "patient");
+  window.location.href = "/pages/patientDashboard.html";
 }
 
-document.addEventListener("DOMContentLoaded", renderHeader);
+renderHeader();

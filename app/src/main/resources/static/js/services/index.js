@@ -5,8 +5,8 @@ const ADMIN_API = `${BASE_URL}/admin/login`;
 const DOCTOR_API = `${BASE_URL}/doctor/login`;
 
 window.onload = function () {
-    const adminLoginBtn = document.getElementById("adminLogin");
-    const doctorLoginBtn = document.getElementById("doctorLogin");
+    const adminLoginBtn = document.getElementById('btn-admin');
+    const doctorLoginBtn = document.getElementById("btn-doctor");
 
     if (adminLoginBtn) {
       adminLoginBtn.addEventListener("click", () => {

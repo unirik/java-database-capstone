@@ -6,7 +6,7 @@ export async function getDoctors() {
     try {
         const response = await fetch(DOCTOR_API);
         const data = await response.json();
-        return data.doctors || [];
+        return data.doctors;
     } catch (error) {
         console.error("Error fetching doctors:", error);
         return [];
@@ -15,13 +15,13 @@ export async function getDoctors() {
 
 export async function deleteDoctor(doctorId, token) {
     try {
-        const response = await fetch(`${DOCTOR_API}/delete/${doctorId}/${token}`, {
+        const response = await fetch(`${DOCTOR_API}/${doctorId}/${token}`, {
             method: "DELETE"
         });
         const data = await response.json();
         return {
             success: response.ok,
-            message: data.message || "Doctor processing complete."
+            message: data.message
         };
     } catch (error) {
         console.error(`Error deleting doctor with ID ${doctorId}:`, error);
@@ -34,7 +34,7 @@ export async function deleteDoctor(doctorId, token) {
 
 export async function saveDoctor(doctorData, token) {
     try {
-        const response = await fetch(`${DOCTOR_API}/save/${token}`, {
+        const response = await fetch(`${DOCTOR_API}/${token}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -44,7 +44,7 @@ export async function saveDoctor(doctorData, token) {
         const data = await response.json();
         return {
             success: response.ok,
-            message: data.message || "Doctor profile saved successfully."
+            message: data.message
         };
     } catch (error) {
         console.error("Error saving new doctor:", error);
@@ -57,12 +57,12 @@ export async function saveDoctor(doctorData, token) {
 
 export async function filterDoctors(name, time, specialty) {
     try {
-        const encName = encodeURIComponent(name || "all");
-        const encTime = encodeURIComponent(time || "all");
-        const encSpecialty = encodeURIComponent(specialty || "all");
-
-        const response = await fetch(`${DOCTOR_API}/filter/${encName}/${encTime}/${encSpecialty}`);
-
+        const response = await fetch(`${DOCTOR_API}/filter/${name}/${time}/${specialty}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
         if (response.ok) {
             const data = await response.json();
             return data;

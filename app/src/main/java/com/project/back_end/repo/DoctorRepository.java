@@ -22,7 +22,7 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long>{
      * @return List<Doctor>
      */
     @Query("SELECT d FROM Doctor d WHERE d.name LIKE CONCAT('%', :name, '%')")
-    List<Doctor> findByNameLike(@Param("name") String name);
+    List<Doctor> findByNameLike(String name);
     
     /**
      * This method retrieves a list of Doctors where the name contains the search string (case-insensitive) and the specialty matches exactly (case-insensitive).
@@ -30,6 +30,7 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long>{
      * @param String specialty
      * @return List<Doctor>
      */
+    @Query("SELECT d FROM Doctor d WHERE LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')) AND LOWER(d.specialty) = LOWER(:specialty)")
     List<Doctor> findByNameContainingIgnoreCaseAndSpecialtyIgnoreCase(String name, String specialty);
 
     /**

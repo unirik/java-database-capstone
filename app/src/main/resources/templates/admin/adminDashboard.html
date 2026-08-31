@@ -18,27 +18,41 @@
         <div class="wrapper">
             <div id="header"></div>
             <main class="main-content">
-                <input type="text" id="searchBar" placeholder="Search content...">
-                <select id="filter-time">
-                    <option value="">Select Time</option>
-                    <option value="AM">AM</option>
-                    <option value="PM">PM</option>
-                </select>
-                <select id="filter-specialty">
-                    <option value="">Select Specialty</option>
-                    <option value="Cardiologist">Cardiologist</option>
-                    <option value="Dentist">Dentist</option>
-                    <option value="Pediatrician">Pediatrician</option>
-                    <option value="General">General Medicine</option>
-                </select>
+                <input type="text" id="searchBar" class="searchBar" placeholder="Search by doctor name...">
+                <div class="filter-wrapper">
+                    <select id="filter-time" class="filter-select">
+                        <option value="">Select Time</option>
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+                    <select id="filter-specialty" class="filter-specialty">
+                        <option value="">Select Specialty</option>
+                        <option value="cardiologist">Cardiologist</option>
+                        <option value="dermatologist">Dermatologist</option>
+                        <option value="neurologist">Neurologist</option>
+                        <option value="pediatrician">Pediatrician</option>
+                        <option value="orthopedic">Orthopedic</option>
+                        <option value="gynecologist">Gynecologist</option>
+                        <option value="psychiatrist">Psychiatrist</option>
+                        <option value="dentist">Dentist</option>
+                        <option value="ophthalmologist">Ophthalmologist</option>
+                        <option value="ent">ENT Specialist</option>
+                        <option value="urologist">Urologist</option>
+                        <option value="oncologist">Oncologist</option>
+                        <option value="gastroenterologist">Gastroenterologist</option>
+                        <option value="general">General Medicine</option>
+                    </select>
+                </div>
                 <div id="content"></div>
             </main>
             <div id="footer"></div>
         </div>
     </div>
     <div id="modal" class="modal">
-        <span id="closeModal" class="close">&times;</span>
-        <div id="modal-body"></div>
+        <div class="modal-content">
+            <span id="closeModal" class="close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
     </div>
     <script type="module" src="../../static/js/adminDashboard.js" defer></script>
     <script type="module" src="../../static/js/doctorDashboard.js" defer></script>

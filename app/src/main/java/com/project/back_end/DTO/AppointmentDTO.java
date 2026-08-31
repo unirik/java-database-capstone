@@ -34,15 +34,10 @@ public class AppointmentDTO {
         this.appointmentTime = appointmentTime;
         this.status = status;
 
-        // Cálculo de campos derivados a partir de appointmentTime
-        if (appointmentTime != null) {
-            this.appointmentDate = appointmentTime.toLocalDate();
-            this.appointmentTimeOnly = appointmentTime.toLocalTime();
-            this.endTime = appointmentTime.plusHours(1);
-        }
+        this.appointmentDate = appointmentTime != null ? appointmentTime.toLocalDate() : null;
+        this.appointmentTimeOnly = appointmentTime != null ? appointmentTime.toLocalTime() : null;
+        this.endTime = appointmentTime != null ? appointmentTime.plusHours(1) : null;
     }
-
-    public AppointmentDTO() {}
 
     public Long getId() {
         return id;
@@ -94,54 +89,5 @@ public class AppointmentDTO {
 
     public LocalDateTime getEndTime() {
         return endTime;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setDoctorId(Long doctorId) {
-        this.doctorId = doctorId;
-    }
-
-    public void setDoctorName(String doctorName) {
-        this.doctorName = doctorName;
-    }
-
-    public void setPatientId(Long patientId) {
-        this.patientId = patientId;
-    }
-
-    public void setPatientName(String patientName) {
-        this.patientName = patientName;
-    }
-
-    public void setPatientEmail(String patientEmail) {
-        this.patientEmail = patientEmail;
-    }
-
-    public void setPatientPhone(String patientPhone) {
-        this.patientPhone = patientPhone;
-    }
-
-    public void setPatientAddress(String patientAddress) {
-        this.patientAddress = patientAddress;
-    }
-
-    public void setAppointmentTime(LocalDateTime appointmentTime) {
-        this.appointmentTime = appointmentTime;
-        if (appointmentTime != null) {
-            this.appointmentDate = appointmentTime.toLocalDate();
-            this.appointmentTimeOnly = appointmentTime.toLocalTime();
-            this.endTime = appointmentTime.plusHours(1);
-        } else {
-            this.appointmentDate = null;
-            this.appointmentTimeOnly = null;
-            this.endTime = null;
-        }
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
     }
 }

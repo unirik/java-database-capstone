@@ -1,16 +1,22 @@
 package com.project.back_end.services;
 
 import org.springframework.stereotype.Service;
+import com.project.back_end.DTO.AppointmentDTO;
 import com.project.back_end.models.Appointment;
+import com.project.back_end.models.Patient;
 import com.project.back_end.repo.AppointmentRepository;
 import com.project.back_end.repo.PatientRepository;
 import com.project.back_end.repo.DoctorRepository;
-import com.project.back_end.services.GeneralService;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.stream.Collectors;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 
 @Service
@@ -33,100 +39,94 @@ public class AppointmentService {
         this.doctorRepository = doctorRepository;
     }
 
-    @Transactional
     public int bookAppointment(Appointment appointment) {
         try {
             appointmentRepository.save(appointment);
             return 1;
         } catch (Exception e) {
-            // Aquí se podría añadir un log del error (e.g., logger.error("...", e))
             return 0;
         }
     }
 
-    @Transactional
-    public String updateAppointment(Long appointmentId, Long patientId, LocalDateTime newTime) {
+    public ResponseEntity<Map<String, String>> updateAppointment(Appointment appointment) {
+        Map<String, String> response = new HashMap<>();
+        Optional<Appointment> result = appointmentRepository.findById(appointment.getId());
+        if (!result.isPresent()) {
+            response.put("message", "Appointment not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+        if (result.get().getPatient().getId != appointment.getPatient().getId()) {
+            response.put("message", "Patient not found");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        int validatedAppointment = service.validateAppointment(appointment);
+        if (validatedAppointment == 1) {
+            try {
+                appointmentRepository.save(appointment);
+                response.put("message", "Appointment updated successfully");
+                return ResponseEntity.status(HttpStatus.OK).body(response);
+            } catch(Exception e) {
+                response.put("message", "Appointment update failed");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+        } else if (validatedAppointment == -1) {
+            response.put("message", "Invalid Appointment");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        response.put("message", "Appointment already booked");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    public ResponseEntity<Map<String, String>> cancelAppointment(Long appointmentId, Long patientId) {
+        Map<String, String> response = new HashMap<>();
         Optional<Appointment> appointmentOpt = appointmentRepository.findById(appointmentId);
-        if (appointmentOpt.isEmpty()) {
-            return "Error: La cita no existe.";
+        String recoveredToken = tokenService.extractEmail(token);
+        Patient patient = patientRepository.findByEmail(recoveredToken);
+        if (patient.getId() != appointmentOpt.get().getPatient().getId()) {
+            response.put("message", "Patient not found");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-
-        Appointment appointment = appointmentOpt.get();
-
-        // 1. Validar si el ID del paciente coincide con el dueño de la cita
-        if (appointment.getPatient() == null || !appointment.getPatient().getId().equals(patientId)) {
-            return "Error: El paciente no está autorizado para modificar esta cita.";
+        if (appointmentOpt.isPresent()) {
+            try {
+                appointmentRepository.delete(appointmentOpt.get());
+                response.put("message", "Appointment cancelled successfully");
+                return ResponseEntity.status(HttpStatus.OK).body(response);
+            } catch (Exception e) {
+                response.put("message", "Appointment cancel failed");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
         }
-
-        // 2. Comprobar si el estado actual permite actualización (ej: Cancelada: 2 o Completada: 1 no se editan)
-        if (appointment.getStatus() != 0) {
-            return "Error: La cita no está disponible para actualización (ya ha sido procesada o cancelada).";
-        }
-
-        // 3. Asegurar que el médico esté disponible en el rango del nuevo horario (duración de 1 hora)
-        Long doctorId = appointment.getDoctor().getId();
-        LocalDateTime endTime = newTime.plusHours(1);
-        
-        List<Appointment> conflictingAppointments = appointmentRepository
-                .findByDoctorIdAndAppointmentTimeBetween(doctorId, newTime, endTime);
-
-        // Filtrar la propia cita actual para evitar un falso positivo de conflicto si se mantiene la misma hora
-        boolean hasConflict = conflictingAppointments.stream()
-                .anyMatch(a -> !a.getId().equals(appointmentId));
-
-        if (hasConflict) {
-            return "Error: El médico no está disponible en el horario especificado.";
-        }
-
-        // Aplicar cambios y guardar de manera transaccional
-        appointment.setAppointmentTime(newTime);
-        appointmentRepository.save(appointment);
-
-        return "Cita actualizada exitosamente.";
+        response.put("message", "Patient not found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @Transactional
-    public String cancelAppointment(Long appointmentId, Long patientId) {
-        Optional<Appointment> appointmentOpt = appointmentRepository.findById(appointmentId);
-        if (appointmentOpt.isEmpty()) {
-            return "Error: Cita no encontrada.";
-        }
-
-        Appointment appointment = appointmentOpt.get();
-
-        // Verificar la coincidencia de propiedad del paciente
-        if (appointment.getPatient() == null || !appointment.getPatient().getId().equals(patientId)) {
-            return "Error: No tiene permisos para cancelar esta cita.";
-        }
-
-        try {
-            appointmentRepository.delete(appointment);
-            return "Cita cancelada y eliminada con éxito.";
-        } catch (Exception e) {
-            return "Error al intentar eliminar la cita de la base de datos.";
-        }
-    }
-
-    @Transactional(readOnly = true)
-    public List<Appointment> getAppointments(Long doctorId, LocalDate day, String patientName) {
-        // Establecer los límites de tiempo para cubrir las 24 horas del día solicitado
+    public Map<String, Object> getAppointments(Long doctorId, LocalDate day, String patientName) {
+        Map<String, Object> response = new HashMap<>();
+        String recoveredEmail = tokenService.extractEmail(token);
+        Long doctorId = doctorRepository.findByEmail(recoveredEmail).getId();
         LocalDateTime startOfDay = day.atStartOfDay();
         LocalDateTime endOfDay = day.atTime(23, 59, 59, 999999999);
-
-        try {
-            if (patientName != null && !patientName.trim().isEmpty()) {
-                // Filtrado por rango diario, doctor y coincidencia de nombre de paciente (usando repositorio previo)
-                return appointmentRepository
-                        .findByDoctorIdAndPatient_NameContainingIgnoreCaseAndAppointmentTimeBetween(
-                                doctorId, patientName, startOfDay, endOfDay);
-            } else {
-                // Búsqueda general diaria del doctor (usando repositorio previo)
-                return appointmentRepository
-                        .findByDoctorIdAndAppointmentTimeBetween(doctorId, startOfDay, endOfDay);
-            }
-        } catch (Exception e) {
-            return Collections.emptyList();
+        List<Appointment> appointmentList;
+        if (patientName.equals("null")) {
+            appointmentList = appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(doctorId, startOfDay, endOfDay);
+        } else {
+            appointmentList = appointmentRepository.findByDoctorIdAndPatient_NameContainingIgnoreCaseAndAppointmentTimeBetween(doctorId, patientName, startOfDay, endOfDay);
         }
+        List<AppointmentDTO> appointmentDTOList = appointmentList.stream().map(
+                app -> new AppointmentDTO(
+                        app.getId(),
+                        app.getDoctor().getId(),
+                        app.getDoctor().getName(),
+                        app.getPatient().getId(),
+                        app.getPatient().getName(),
+                        app.getPatient().getEmail(),
+                        app.getPatient().getPhone(),
+                        app.getPatient().getAddress(),
+                        app.getAppointmentTime(),
+                        app.getStatus())).collect(Collectors.toList());
+        response.put("appointments", appointmentDTOList);
+        return response;
     }
 
     @Transactional

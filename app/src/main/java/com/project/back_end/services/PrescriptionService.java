@@ -5,77 +5,46 @@ import com.project.back_end.models.Prescription;
 import com.project.back_end.repo.PrescriptionRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class PrescriptionService {
-    private static final Logger logger = LoggerFactory.getLogger(PrescriptionService.class);
     private final PrescriptionRepository prescriptionRepository;
 
     public PrescriptionService(PrescriptionRepository prescriptionRepository) {
         this.prescriptionRepository = prescriptionRepository;
     }
 
-    public ResponseEntity<Object> savePrescription(Prescription prescription) {
+    public ResponseEntity<Map<String, String>> savePrescription(Prescription prescription) {
+        Map<String, String> response = new HashMap<>();
         try {
-            if (prescription.getAppointmentId() == null) {
-                Map<String, String> badRequestResponse = new HashMap<>();
-                badRequestResponse.put("error", "El ID de la cita (appointmentId) es obligatorio.");
-                return new ResponseEntity<>(badRequestResponse, HttpStatus.BAD_REQUEST);
-            }
-
             List<Prescription> existingPrescriptions = prescriptionRepository
                     .findByAppointmentId(prescription.getAppointmentId());
 
-            if (!existingPrescriptions.isEmpty()) {
-                Map<String, String> conflictResponse = new HashMap<>();
-                conflictResponse.put("message", "La receta médica ya existe para esta cita.");
-                return new ResponseEntity<>(conflictResponse, HttpStatus.BAD_REQUEST);
+            if (existingPrescriptions.isEmpty()) {
+                prescriptionRepository.save(prescription);
+                response.put("message", "Prescription has been saved successfully.");
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
             }
-
-            Prescription savedPrescription = prescriptionRepository.save(prescription);
-            
-            Map<String, Object> successResponse = new HashMap<>();
-            successResponse.put("message", "Receta médica creada exitosamente.");
-            successResponse.put("data", savedPrescription);
-            
-            return new ResponseEntity<>(successResponse, HttpStatus.CREATED);
+            response.put("message", "prescription already exists.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 
         } catch (Exception e) {
-            logger.error("Error crítico al intentar guardar la receta médica", e);
-            return buildInternalServerErrorResponse("Error al intentar guardar la receta en la base de datos.");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
-    public ResponseEntity<Object> getPrescription(Long appointmentId) {
+    public ResponseEntity<Map<String, Object>> getPrescription(Long appointmentId) {
+        Map<String, Object> response = new HashMap<>();
         try {
-            List<Prescription> prescriptions = prescriptionRepository.findByAppointmentId(appointmentId);
-
-            if (prescriptions.isEmpty()) {
-                Map<String, String> notFoundResponse = new HashMap<>();
-                notFoundResponse.put("message", "No se encontró ninguna receta médica vinculada a la cita provista.");
-                return new ResponseEntity<>(notFoundResponse, HttpStatus.OK); 
-            }
-
-            Map<String, Object> responseBody = new HashMap<>();
-            responseBody.put("prescription", prescriptions.get(0)); // Retorna la receta principal asociada
-            
-            return new ResponseEntity<>(responseBody, HttpStatus.OK);
-
+            response.put("prescription", prescriptionRepository.findByAppointmentId(appointmentId));
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception e) {
-            logger.error("Error crítico al recuperar la receta de la cita con ID: {}", appointmentId, e);
-            return buildInternalServerErrorResponse("Error interno del servidor al procesar la búsqueda de la receta.");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-    }
-
-    private ResponseEntity<Object> buildInternalServerErrorResponse(String message) {
-        Map<String, String> errorResponseBody = new HashMap<>();
-        errorResponseBody.put("error", "Internal Server Error");
-        errorResponseBody.put("message", message);
-        return new ResponseEntity<>(errorResponseBody, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
