@@ -36,12 +36,12 @@ public class DoctorService {
     }
 
     @Transactional
-    public List<String> getDoctorAvailability(Long doctorId, LocalDate date) {
+    public List<String> getDoctorAvailability(Long doctorId, LocalDateTime date) {
         Optional<Doctor> doctor = doctorRepository.findById(doctorId);
         List<String> availableSlots = doctor.get().getAvailableTimes().stream().map(Object::toString).collect(Collectors.toList());
 
-        LocalDateTime startOfDay = date.toLocalDate().atStartOfDay();
-        LocalDateTime endOfDay = date.toLocalDate().atTime(LocalTime.MAX);
+        LocalDateTime startOfDay = date.with(LocalTime.MIN);
+        LocalDateTime endOfDay = date.with(LocalTime.MAX);
 
         List<Appointment> bookedAppointments = appointmentRepository
                 .findByDoctorIdAndAppointmentTimeBetween(doctorId, startOfDay, endOfDay);
