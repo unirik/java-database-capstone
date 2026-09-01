@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.Map;
 
 @RestController
-@RequestMapping("${api.path}admin")
+@RequestMapping("${api.path}admin/login")
 public class AdminController {
     private final GeneralService service;
 
