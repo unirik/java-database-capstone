@@ -15,18 +15,6 @@ jobs:
       - name: Descargar código del repositorio
         uses: actions/checkout@v4
 
-      - name: Configurar Java 17 (Temurin)
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-          cache-dependency-path: ./app/pom.xml
-
-      - name: Compilar proyecto con Maven
-        working-directory: app
-        run: mvn clean package -DskipTests
-
       - name: Construir imagen Docker local
         working-directory: app
         run: docker build -t java-database-capstone:scan .
@@ -36,8 +24,6 @@ jobs:
         with:
           image-ref: 'java-database-capstone:scan'
           format: 'table'
-          # Si encuentra fallos CRITICAL o HIGH, el flujo fallará (exit-code: '1')
-          # Cambia a '0' si solo quieres ver el reporte sin bloquear el proceso
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
