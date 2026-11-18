@@ -29,9 +29,9 @@ jobs:
         run: docker build -t mi-app-java:scan .
 
       - name: Ejecutar escaneo de vulnerabilidades con Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.28.0
         with:
-          image-ref: 'mi-app-java:scan'
+          image-ref: 'java-database-capstone:scan'
           format: 'table'
           # Si encuentra fallos CRITICAL o HIGH, el flujo fallará (exit-code: '1')
           # Cambia a '0' si solo quieres ver el reporte sin bloquear el proceso
