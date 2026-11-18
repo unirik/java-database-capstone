@@ -1,5 +1,5 @@
-# Step 1: Use Maven with JDK 17 to build the app
-FROM maven:3.9.9-eclipse-temurin-17 AS builder
+# Step 1: Compile with Java 21 and Maven
+FROM maven:3.9-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /app
 
@@ -8,10 +8,14 @@ COPY src ./src
 
 RUN mvn clean package -DskipTests
 
-# Step 2: Use lightweight JRE 17 for running the app
-FROM eclipse-temurin:17.0.15_6-jre
+# Step 2: Use lightweight JRE 21 (alpine)
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
+
+# Good security practice
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
 
 COPY --from=builder /app/target/back-end-0.0.1-SNAPSHOT.jar app.jar
 
