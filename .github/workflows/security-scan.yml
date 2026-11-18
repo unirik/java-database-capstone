@@ -26,7 +26,7 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Construir imagen Docker local
-        run: docker build -t mi-app-java:scan .
+        run: docker build -t java-database-capstone:scan .
 
       - name: Ejecutar escaneo de vulnerabilidades con Trivy
         uses: aquasecurity/trivy-action@v0.36.0
