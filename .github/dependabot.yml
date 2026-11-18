@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # Revisa dependencias de Maven (Spring Boot, librerías, etc.)
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Revisa actualizaciones en la imagen base de tu Dockerfile (Java 21)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
