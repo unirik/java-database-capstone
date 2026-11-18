@@ -1,0 +1,41 @@
+name: Escaneo de Seguridad (Maven y Docker)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  trivy-scan:
+    name: Construir y escanear imagen Docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Compilar proyecto con Maven
+        run: mvn clean package -DskipTests
+
+      - name: Construir imagen Docker local
+        run: docker build -t mi-app-java:scan .
+
+      - name: Ejecutar escaneo de vulnerabilidades con Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: 'mi-app-java:scan'
+          format: 'table'
+          # Si encuentra fallos CRITICAL o HIGH, el flujo fallará (exit-code: '1')
+          # Cambia a '0' si solo quieres ver el reporte sin bloquear el proceso
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
