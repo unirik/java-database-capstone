@@ -21,8 +21,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+          cache-dependency-path: ./app/pom.xml
 
       - name: Compilar proyecto con Maven
+        working-directory: app
         run: mvn clean package -DskipTests
 
       - name: Construir imagen Docker local
